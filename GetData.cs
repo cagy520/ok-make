@@ -20,7 +20,7 @@ namespace cagy_okex
                 {
                     //获取JSON串GetJsonFile
                     WebHelper wh = new WebHelper();
-                    string json = wh.GetUrlJson("http://www.okexcn.com/api/swap/v3/instruments/BTC-USDT-SWAP/candles?start=2021-01-15T02:31:00.000Z&end=2021-01-25T02:55:00.000Z&granularity=3600");
+                    string json = wh.GetUrlJson("http://www.okexcn.com/api/swap/v3/instruments/BTC-USDT-SWAP/candles?granularity=3600");
                     //if (json.Contains("数据不存在")) continue;
                     Console.WriteLine(json);
 
@@ -45,13 +45,38 @@ namespace cagy_okex
             {
                 DataItem di = new DataItem();
                 var it = jsonArr[i].ToString().Replace("[", "").Replace("]", "").Replace("\r\n", "").Replace("\\","").Replace(" ","").Replace(@"""","'");
-                string sql = "insert into bh(tm,kai,gao,di,shou,vm,vmb) values(" + it + ");";
-                Console.WriteLine(sql);
-                DBHelper db = new DBHelper();
-                db.Exec(sql);
+              
+                //前两条都是插入或者跟新
+                if ((i == 0)||(i==1))//只更新前面两条
+                {
+                    DBHelper db0 = new DBHelper();
+                    //'2021-02-25T07:00:00.000Z','50487.2','50597.8','50128.1','50409.6','69778','697.78'
+                    string xit=it.Substring(1, 19).Replace("T"," ");
+                    if (db0.Exist(xit) == 1)
+                    {
+                        //更新
+                        string[] objs = it.Split(',');
+                        string update_sql = "update bh set kai=" + objs[1] + ", gao=" + objs[2] + ",di=" + objs[3] + ",shou=" + objs[4] + ",vm=" + objs[5] + ",vmb=" + objs[6]+" where tm='"+xit+"'";
+                        Console.WriteLine(update_sql);
+                        DBHelper db = new DBHelper();
+                        db.Exec(update_sql);
+                    }
+                    else
+                    {
+                        //插入
+                        string sql = "insert into bh(tm,kai,gao,di,shou,vm,vmb) values(" + it + ");";
+                        Console.WriteLine(sql);
+                        DBHelper db = new DBHelper();
+                        db.Exec(sql);
+                    }
+                }
+                if (i == 1) break;
+
                
             }
         }
+
+
         /// <summary>
         /// 插入数据库
         /// </summary>
