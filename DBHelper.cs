@@ -9,7 +9,7 @@ namespace cagy_okex
     public class DBHelper
     {
 
-        string connString = "Host=st.funenc.com;Port=5432;Username=postgres;Password=1;Database=bit";
+        string connString = "Host=;Port=5432;Username=postgres;Password=1;Database=bit";
 
         public int Exec(string sql)
         {
